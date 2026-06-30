@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vintage Typewriter Typing Test</title>
+    <style>
+        /* ---------- GLOBAL RESET & FONTS ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #2b1b0e;
+            /* dark wood background */
+            font-family: 'Special Elite', 'Courier New', monospace;
+            padding: 20px;
+        }
+
+        /* ---------- TYPEWRITER FRAME ---------- */
+        .typewriter-frame {
+            max-width: 900px;
+            width: 100%;
+            background: #d4c5a0;
+            /* vintage paper base */
+            padding: 40px 50px 50px 50px;
+            border-radius: 30px 30px 20px 20px;
+            box-shadow:
+                0 20px 40px rgba(0, 0, 0, 0.7),
+                0 0 0 6px #3d2b1a,
+                0 0 0 12px #5c3f2b;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        /* decorative carriage return lever */
+        .typewriter-frame::before {
+            content: "⏎";
+            position: absolute;
+            top: -22px;
+            right: 30px;
+            font-size: 32px;
+            color: #b8945c;
+            background: #2b1b0e;
+            padding: 0 14px 6px 14px;
+            border-radius: 20px 20px 0 0;
+            border: 3px solid #5c3f2b;
+            border-bottom: none;
+            transform: rotate(5deg);
+            font-weight: bold;
+            text-shadow: 0 2px 0 #1a0f08;
+        }
+
+        /* ---------- PAPER AREA ---------- */
+        .paper {
+            background: #fcf8ec;
+            background-image:
+                linear-gradient(#e8e0d0 1px, transparent 1px);
+            background-size: 100% 28px;
+            padding: 30px 35px 20px 35px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 30px rgba(80, 60, 30, 0.15);
+            border: 2px solid #b8a88a;
+            min-height: 280px;
+            position: relative;
+        }
+
+        .paper::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg,
+                    rgba(252, 248, 236, 0.3) 0%,
+                    rgba(200, 180, 150, 0.05) 100%);
+            pointer-events: none;
+            border-radius: 8px;
+        }
+
+        /* ---------- TEXT DISPLAY ---------- */
+        #textDisplay {
+            font-size: 24px;
+            line-height: 42px;
+            font-family: 'Special Elite', 'Courier New', monospace;
+            color: #1f1a12;
+            letter-spacing: 1px;
+            word-break: break-word;
+            min-height: 180px;
+            position: relative;
+            z-index: 1;
+        }
+
+        #textDisplay .correct {
+            color: #2b7a4b;
+            background: rgba(43, 122, 75, 0.12);
+            border-radius: 2px;
+        }
+
+        #textDisplay .incorrect {
+            color: #b13e3e;
+            background: rgba(177, 62, 62, 0.15);
+            border-radius: 2px;
+            text-decoration: underline wavy #b13e3e;
+        }
+
+        #textDisplay .current {
+            background: #d4c5a0;
+            border-left: 4px solid #3d2b1a;
+            padding: 0 2px;
+            animation: blink-caret 0.7s step-end infinite;
+        }
+
+        @keyframes blink-caret {
+            50% {
+                border-color: transparent;
+            }
+        }
+
+        #textDisplay .pending {
+            color: #7a6a54;
+        }
+
+        /* ---------- STATS BAR ---------- */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0 18px 0;
+            padding: 12px 20px;
+            background: #e8dec8;
+            border-radius: 40px;
+            border: 2px solid #b8a88a;
+            font-size: 18px;
+            color: #2b1b0e;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+            flex-wrap: wrap;
+            gap: 8px 20px;
+        }
+
+        .stats span {
+            font-weight: bold;
+            color: #4d2f1a;
+        }
+
+        .stats .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-item .badge {
+            background: #2b1b0e;
+            color: #f0e6d0;
+            padding: 0 14px;
+            border-radius: 30px;
+            font-size: 16px;
+            line-height: 28px;
+        }
+
+        /* ---------- COLORFUL KEYBOARD ---------- */
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 22px;
+            padding: 14px 10px 10px 10px;
+            background: linear-gradient(145deg, #3d2b1a, #281a0e);
+            border-radius: 16px;
+            box-shadow:
+                inset 0 -4px 0 #1a0f08,
+                0 8px 20px rgba(0, 0, 0, 0.5);
+            border: 2px solid #5c3f2b;
+        }
+
+        .key-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .key {
+            min-width: 48px;
+            height: 48px;
+            padding: 0 6px;
+            border-radius: 8px 8px 12px 12px;
+            background: linear-gradient(180deg, #f5ede0, #d6c8b0);
+            border: none;
+            border-bottom: 4px solid #a09078;
+            font-family: 'Special Elite', 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1f1a12;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            transition: all 0.05s ease;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+            flex: 0 1 auto;
+            user-select: none;
+            position: relative;
+        }
+
+        /* special key widths */
+        .key.wide {
+            min-width: 72px;
+        }
+        .key.wider {
+            min-width: 96px;
+        }
+        .key.space {
+            min-width: 240px;
+        }
+
+        /* ---------- COLORFUL KEY VARIANTS ---------- */
+        .key.color-1 {
+            background: linear-gradient(180deg, #f7d6b0, #e8b88a);
+            border-bottom-color: #b8865a;
+            color: #3d2b1a;
+        }
+        .key.color-2 {
+            background: linear-gradient(180deg, #b8d9e8, #8ab8d4);
+            border-bottom-color: #5a8aa8;
+            color: #1a2a3d;
+        }
+        .key.color-3 {
+            background: linear-gradient(180deg, #d4b8e8, #b88ad4);
+            border-bottom-color: #7a5aa8;
+            color: #2a1a3d;
+        }
+        .key.color-4 {
+            background: linear-gradient(180deg, #b8e8c8, #8ad4aa);
+            border-bottom-color: #4a8a6a;
+            color: #1a2a22;
+        }
+        .key.color-5 {
+            background: linear-gradient(180deg, #f0d0d0, #d8a8a8);
+            border-bottom-color: #a06a6a;
+            color: #3d1a1a;
+        }
+        .key.color-6 {
+            background: linear-gradient(180deg, #f7e8a0, #e8d06a);
+            border-bottom-color: #b8983a;
+            color: #2d2a0a;
+        }
+        .key.color-7 {
+            background: linear-gradient(180deg, #d0e0e8, #a8c0d4);
+            border-bottom-color: #6a8aa8;
+            color: #1a2a3d;
+        }
+
+        /* key press animation (fancy!) */
+        .key.pressed {
+            transform: translateY(3px);
+            border-bottom-width: 1px;
+            box-shadow: 0 0 12px rgba(255, 215, 100, 0.5);
+        }
+
+        /* key "glow" on hover (desktop) */
+        .key:hover {
+            filter: brightness(1.06);
+            transform: scale(1.02);
+            transition: all 0.08s;
+        }
+
+        /* ---------- CONTROLS ---------- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: 'Special Elite', 'Courier New', monospace;
+            font-size: 20px;
+            padding: 10px 32px;
+            border-radius: 40px;
+            border: none;
+            background: linear-gradient(180deg, #e8dec8, #c8b89a);
+            border-bottom: 5px solid #8a7a62;
+            color: #1f1a12;
+            cursor: pointer;
+            transition: all 0.08s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: scale(1.03);
+            filter: brightness(1.05);
+        }
+        .btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(180deg, #c8a87a, #b0885a);
+            border-bottom-color: #7a5a3a;
+            color: #fcf8ec;
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 700px) {
+            .typewriter-frame {
+                padding: 20px 16px 30px 16px;
+            }
+            .paper {
+                padding: 18px 16px 12px 16px;
+            }
+            #textDisplay {
+                font-size: 18px;
+                line-height: 34px;
+            }
+            .key {
+                min-width: 32px;
+                height: 38px;
+                font-size: 14px;
+                border-bottom-width: 3px;
+            }
+            .key.space {
+                min-width: 120px;
+            }
+            .key.wide {
+                min-width: 44px;
+            }
+            .key.wider {
+                min-width: 60px;
+            }
+            .stats {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+            .btn {
+                font-size: 16px;
+                padding: 8px 20px;
+            }
+            .typewriter-frame::before {
+                font-size: 22px;
+                top: -16px;
+                right: 16px;
+                padding: 0 10px 4px 10px;
+            }
+        }
+
+        @media (max-width: 460px) {
+            .key {
+                min-width: 22px;
+                height: 30px;
+                font-size: 10px;
+                gap: 3px;
+                border-bottom-width: 2px;
+                border-radius: 4px 4px 8px 8px;
+            }
+            .key.space {
+                min-width: 70px;
+            }
+            .key.wide {
+                min-width: 30px;
+            }
+            .key.wider {
+                min-width: 40px;
+            }
+            .key-row {
+                gap: 3px;
+            }
+            .keyboard {
+                gap: 4px;
+                padding: 8px 4px 6px 4px;
+            }
+            #textDisplay {
+                font-size: 14px;
+                line-height: 26px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="typewriter-frame">
+
+        <!-- PAPER -->
+        <div class="paper">
+            <div id="textDisplay">
+                <!-- dynamically filled -->
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats">
+            <div class="stat-item">⌨️ WPM <span id="wpmDisplay">0</span></div>
+            <div class="stat-item">🎯 Accuracy <span id="accuracyDisplay">100%</span></div>
+            <div class="stat-item">📝 <span id="progressDisplay">0 / 0</span></div>
+            <div class="stat-item">⏱️ <span id="timerDisplay">0s</span></div>
+        </div>
+
+        <!-- KEYBOARD -->
+        <div class="keyboard" id="keyboardContainer">
+            <!-- rows will be injected by JS -->
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="controls">
+            <button class="btn btn-primary" id="resetBtn">⟳ New Test</button>
+            <button class="btn" id="soundToggleBtn">🔊 Sound: ON</button>
+        </div>
+
+    </div>
+
+    <script>
+        // ============================================================
+        //  1.  CONFIG
+        // ============================================================
+        const SAMPLE_TEXTS = [
+            "The quick brown fox jumps over the lazy dog.",
+            "Pack my box with five dozen liquor jugs.",
+            "How vexingly quick daft zebras jump.",
+            "The five boxing wizards jump quickly.",
+            "Jazzy gnomes vexed by fickle wizards.",
+            "A wizard's job is to vex chumps quickly in fog.",
+            "Amazingly few discotheques provide jukeboxes.",
+            "Fix problem quickly with galvanized jets.",
+            "The big question is whether typewriters can be colorful.",
+            "Practice makes perfect, so keep typing every day."
+        ];
+
+        // ============================================================
+        //  2.  STATE
+        // ============================================================
+        let currentText = '';
+        let userInput = [];
+        let startTime = null;
+        let timerInterval = null;
+        let isFinished = false;
+        let soundEnabled = true;
+
+        // DOM refs
+        const displayEl = document.getElementById('textDisplay');
+        const wpmEl = document.getElementById('wpmDisplay');
+        const accuracyEl = document.getElementById('accuracyDisplay');
+        const progressEl = document.getElementById('progressDisplay');
+        const timerEl = document.getElementById('timerDisplay');
+        const resetBtn = document.getElementById('resetBtn');
+        const soundToggleBtn = document.getElementById('soundToggleBtn');
+
+        // ============================================================
+        //  3.  SOUND ENGINE (Web Audio API — mechanical clicks)
+        // ============================================================
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioCtx;
+        }
+
+        function playTypingSound() {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioContext();
+                // create a short noise burst + tone for that "clack"
+                const now = ctx.currentTime;
+
+                // Noise component (mechanical click)
+                const bufferSize = ctx.sampleRate * 0.04; // 40ms
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    // decaying random noise
+                    const env = 1 - (i / bufferSize);
+                    data[i] = (Math.random() * 2 - 1) * env * 0.6;
+                }
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                // a resonant filter to give it "click" character
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1200 + Math.random() * 600;
+                filter.Q.value = 1.2;
+
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+
+                noise.start(now);
+                noise.stop(now + 0.04);
+
+                // extra short "tick" high frequency
+                const osc = ctx.createOscillator();
+                osc.type = 'square';
+                osc.frequency.value = 1800 + Math.random() * 400;
+                const g2 = ctx.createGain();
+                g2.gain.setValueAtTime(0.08, now);
+                g2.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+                osc.connect(g2);
+                g2.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.02);
+
+            } catch (e) {
+                // silently fail if audio not supported
+            }
+        }
+
+        // ============================================================
+        //  4.  RENDER KEYBOARD (colorful layout)
+        // ============================================================
+        const KEYBOARD_LAYOUT = [
+            ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '⌫'],
+            ['Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\'],
+            ['Caps', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', "'", 'Enter'],
+            ['Shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 'Shift'],
+            [' ', 'Space']
+        ];
+
+        // map key -> color class
+        function getKeyColorClass(key) {
+            const upper = key.toUpperCase();
+            // vowels get warm colors
+            if ('AEIOU'.includes(upper)) return 'color-1';
+            // common consonants
+            if ('BCDFGHJKLMNPQRSTVWXYZ'.includes(upper)) {
+                const idx = upper.charCodeAt(0) % 6;
+                return ['color-2', 'color-3', 'color-4', 'color-5', 'color-6', 'color-7'][idx];
+            }
+            // numbers / symbols
+            if ('1234567890'.includes(key)) return 'color-6';
+            if ('-=[]\\;\',./`'.includes(key)) return 'color-7';
+            // special keys
+            if (['⌫', 'Tab', 'Caps', 'Enter', 'Shift', 'Space'].includes(key)) return 'color-5';
+            return 'color-2';
+        }
+
+        function buildKeyboard() {
+            const container = document.getElementById('keyboardContainer');
+            container.innerHTML = '';
+            KEYBOARD_LAYOUT.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'key-row';
+                row.forEach(label => {
+                    const keyEl = document.createElement('div');
+                    keyEl.className = 'key';
+                    // special widths
+                    if (label === 'Space') keyEl.classList.add('space');
+                    else if (['Tab', 'Caps', 'Enter', 'Shift'].includes(label)) keyEl.classList.add('wide');
+                    else if (label === '⌫') keyEl.classList.add('wider');
+                    // color
+                    keyEl.classList.add(getKeyColorClass(label));
+                    keyEl.textContent = label;
+                    keyEl.dataset.key = label;
+                    rowDiv.appendChild(keyEl);
+                });
+                container.appendChild(rowDiv);
+            });
+        }
+
+        // ============================================================
+        //  5.  HIGHLIGHT KEYBOARD KEY
+        // ============================================================
+        function highlightKey(char) {
+            const keys = document.querySelectorAll('.key');
+            let targetLabel = char;
+            if (char === ' ') targetLabel = 'Space';
+            else if (char === 'Backspace') targetLabel = '⌫';
+            else if (char === 'Enter') targetLabel = 'Enter';
+            else if (char === 'Tab') targetLabel = 'Tab';
+            // Shift: we'll just highlight both Shift keys
+            const isShift = (char === 'Shift');
+
+            keys.forEach(k => {
+                k.classList.remove('pressed');
+                const label = k.dataset.key || k.textContent;
+                if (label === targetLabel || (isShift && label === 'Shift')) {
+                    k.classList.add('pressed');
+                }
+            });
+            // auto-remove highlight after 120ms
+            clearTimeout(window._keyHighlightTimeout);
+            window._keyHighlightTimeout = setTimeout(() => {
+                keys.forEach(k => k.classList.remove('pressed'));
+            }, 120);
+        }
+
+        // ============================================================
+        //  6.  RENDER TEXT DISPLAY
+        // ============================================================
+        function renderText() {
+            let html = '';
+            for (let i = 0; i < currentText.length; i++) {
+                const char = currentText[i];
+                if (i < userInput.length) {
+                    const typed = userInput[i];
+                    if (typed === char) {
+                        html += `<span class="correct">${char}</span>`;
+                    } else {
+                        html += `<span class="incorrect">${char}</span>`;
+                    }
+                } else if (i === userInput.length) {
+                    html += `<span class="current">${char}</span>`;
+                } else {
+                    html += `<span class="pending">${char}</span>`;
+                }
+            }
+            // if finished, remove current highlight
+            if (isFinished) {
+                html = html.replace(/<span class="current">/g, '<span>');
+            }
+            displayEl.innerHTML = html;
+
+            // scroll to current position
+            const currentSpan = displayEl.querySelector('.current');
+            if (currentSpan) {
+                currentSpan.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }
+
+            // update stats
+            updateStats();
+        }
+
+        // ============================================================
+        //  7.  STATS
+        // ============================================================
+        function updateStats() {
+            const total = currentText.length;
+            const typed = userInput.length;
+            const correct = userInput.filter((c, i) => c === currentText[i]).length;
+            const wrong = typed - correct;
+
+            // accuracy
+            const accuracy = typed === 0 ? 100 : Math.round((correct / typed) * 100);
+            accuracyEl.textContent = accuracy + '%';
+
+            // progress
+            progressEl.textContent = `${typed} / ${total}`;
+
+            // WPM (if started)
+            if (startTime && typed > 0 && !isFinished) {
+                const elapsed = (Date.now() - startTime) / 60000; // minutes
+                const wpm = Math.round((typed / 5) / elapsed);
+                wpmEl.textContent = Math.max(0, wpm);
+            } else if (isFinished && startTime) {
+                const elapsed = (Date.now() - startTime) / 60000;
+                const wpm = Math.round((total / 5) / elapsed);
+                wpmEl.textContent = Math.max(0, wpm);
+            } else {
+                wpmEl.textContent = '0';
+            }
+        }
+
+        // ============================================================
+        //  8.  TIMER
+        // ============================================================
+        function startTimer() {
+            if (startTime) return;
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                timerEl.textContent = elapsed + 's';
+                updateStats();
+            }, 500);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        // ============================================================
+        //  9.  KEYBOARD INPUT HANDLER
+        // ============================================================
+        function handleKeyDown(e) {
+            // ignore if finished
+            if (isFinished) return;
+
+            const key = e.key;
+
+            // ignore modifier keys alone
+            if (['Control', 'Alt', 'Meta', 'CapsLock', 'Shift', 'Tab', 'Escape', 'ContextMenu'].includes(key)) {
+                // but still highlight Shift/Tab
+                if (key === 'Shift' || key === 'Tab') {
+                    highlightKey(key);
+                }
+                return;
+            }
+
+            // prevent default for special keys
+            if (key === 'Backspace' || key === 'Enter' || key === 'Tab') {
+                e.preventDefault();
+            }
+
+            // play sound & highlight
+            playTypingSound();
+            highlightKey(key);
+
+            // start timer on first typed char
+            if (userInput.length === 0) {
+                startTimer();
+            }
+
+            // --- Backspace ---
+            if (key === 'Backspace') {
+                if (userInput.length > 0) {
+                    userInput.pop();
+                    renderText();
+                }
+                return;
+            }
+
+            // --- Enter: finish test ---
+            if (key === 'Enter') {
+                if (userInput.length < currentText.length) {
+                    // fill remaining with spaces? no, just finish.
+                    // we'll auto-complete with spaces? Better: mark as done.
+                    // But we want to allow finishing only when all chars typed.
+                    // So we'll just ignore Enter unless already at end.
+                    if (userInput.length === currentText.length) {
+                        finishTest();
+                    }
+                }
+                return;
+            }
+
+            // --- regular character ---
+            // only accept if we haven't typed all chars yet
+            if (userInput.length >= currentText.length) {
+                // if already at end, ignore further input
+                return;
+            }
+
+            // accept only printable characters (ignore function keys etc)
+            if (key.length === 1) {
+                userInput.push(key);
+                renderText();
+
+                // check if finished
+                if (userInput.length === currentText.length) {
+                    finishTest();
+                }
+            }
+        }
+
+        // ============================================================
+        //  10. FINISH TEST
+        // ============================================================
+        function finishTest() {
+            if (isFinished) return;
+            isFinished = true;
+            stopTimer();
+
+            // fill any remaining characters as "not typed" (already shown as pending)
+            // but we want to show all as either correct/incorrect
+            // we already have userInput for all chars now, so re-render
+            renderText();
+
+            // make sure we show final WPM
+            updateStats();
+
+            // add a subtle "done" sound?
+            playTypingSound();
+            setTimeout(() => playTypingSound(), 100);
+
+            // flash the stats
+            wpmEl.style.transition = 'color 0.2s';
+            wpmEl.style.color = '#2b7a4b';
+            setTimeout(() => { wpmEl.style.color = ''; }, 800);
+        }
+
+        // ============================================================
+        //  11. RESET
+        // ============================================================
+        function resetTest() {
+            stopTimer();
+            startTime = null;
+            isFinished = false;
+            userInput = [];
+            timerEl.textContent = '0s';
+            wpmEl.textContent = '0';
+            accuracyEl.textContent = '100%';
+
+            // pick random text
+            currentText = SAMPLE_TEXTS[Math.floor(Math.random() * SAMPLE_TEXTS.length)];
+            renderText();
+            // reset keyboard highlights
+            document.querySelectorAll('.key').forEach(k => k.classList.remove('pressed'));
+        }
+
+        // ============================================================
+        //  12. SOUND TOGGLE
+        // ============================================================
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            soundToggleBtn.textContent = soundEnabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+            if (soundEnabled) {
+                // re-init audio context on user gesture
+                getAudioContext();
+            }
+        }
+
+        // ============================================================
+        //  13. INIT
+        // ============================================================
+        function init() {
+            buildKeyboard();
+            resetTest();
+
+            // event listeners
+            document.addEventListener('keydown', handleKeyDown);
+            resetBtn.addEventListener('click', resetTest);
+            soundToggleBtn.addEventListener('click', toggleSound);
+
+            // click on page to resume audio context (required by some browsers)
+            document.addEventListener('click', () => {
+                if (soundEnabled) getAudioContext();
+            }, { once: false });
+        }
+
+        // run when DOM ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body>
+</html>
